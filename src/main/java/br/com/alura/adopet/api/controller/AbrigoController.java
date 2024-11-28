@@ -1,5 +1,7 @@
 package br.com.alura.adopet.api.controller;
 
+import br.com.alura.adopet.api.dto.abrigo.CadastrarAbrigoDto;
+import br.com.alura.adopet.api.dto.pet.CadastrarPetDto;
 import br.com.alura.adopet.api.exception.NaoEncontradoException;
 import br.com.alura.adopet.api.exception.ValidacaoException;
 import br.com.alura.adopet.api.model.Abrigo;
@@ -36,9 +38,9 @@ public class AbrigoController {
 
     @PostMapping
     @Transactional
-    public ResponseEntity<String> cadastrar(@RequestBody @Valid Abrigo abrigo) {
+    public ResponseEntity<String> cadastrar(@RequestBody @Valid CadastrarAbrigoDto dto) {
         try {
-            service.cadastrar(abrigo);
+            service.cadastrar(dto);
             return ResponseEntity.noContent().build();
         } catch (ValidacaoException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -56,9 +58,9 @@ public class AbrigoController {
 
     @PostMapping("/{idOuNome}/pets")
     @Transactional
-    public ResponseEntity<String> cadastrarPet(@PathVariable String idOuNome, @RequestBody @Valid Pet pet) {
+    public ResponseEntity<String> cadastrarPet(@PathVariable String idOuNome, @RequestBody @Valid CadastrarPetDto dto) {
         try {
-            service.cadastrarPet(idOuNome, pet);
+            service.cadastrarPet(idOuNome, dto);
             return ResponseEntity.noContent().build();
         } catch (NaoEncontradoException e) {
             return ResponseEntity.notFound().build();

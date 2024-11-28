@@ -1,11 +1,16 @@
 package br.com.alura.adopet.api.service;
 
+import br.com.alura.adopet.api.dto.abrigo.CadastrarAbrigoDto;
+import br.com.alura.adopet.api.dto.pet.CadastrarPetDto;
 import br.com.alura.adopet.api.exception.NaoEncontradoException;
 import br.com.alura.adopet.api.exception.ValidacaoException;
 import br.com.alura.adopet.api.model.Abrigo;
 import br.com.alura.adopet.api.model.Pet;
+import br.com.alura.adopet.api.model.TipoPet;
 import br.com.alura.adopet.api.repository.AbrigoRepository;
+import br.com.alura.adopet.api.repository.PetRepository;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,61 +19,76 @@ import java.util.List;
 @Service
 public class AbrigoService {
 
-    private final AbrigoRepository repository;
+    private final AbrigoRepository abrigoRepository;
+    private final PetRepository petRepository;
 
     @Autowired
-    public AbrigoService(AbrigoRepository repository) {
-        this.repository = repository;
+    public AbrigoService(AbrigoRepository abrigoRepository, PetRepository petRepository) {
+        this.abrigoRepository = abrigoRepository;
+        this.petRepository = petRepository;
     }
 
     public List<Abrigo> listar() {
-        return repository.findAll();
+        return abrigoRepository.findAll();
     }
 
-    public void cadastrar(Abrigo abrigo) {
-        boolean nomeJaCadastrado = repository.existsByNome(abrigo.getNome());
-        boolean telefoneJaCadastrado = repository.existsByTelefone(abrigo.getTelefone());
-        boolean emailJaCadastrado = repository.existsByEmail(abrigo.getEmail());
+    public void cadastrar(@Valid CadastrarAbrigoDto dto) {
+        boolean nomeJaCadastrado = abrigoRepository.existsByNome(dto.nome());
+        boolean telefoneJaCadastrado = abrigoRepository.existsByTelefone(dto.telefone());
+        boolean emailJaCadastrado = abrigoRepository.existsByEmail(dto.email());
 
         if (nomeJaCadastrado || telefoneJaCadastrado || emailJaCadastrado) {
             throw new ValidacaoException("Dados já cadastrados para outro abrigo!");
         }
 
-        repository.save(abrigo);
+        Abrigo abrigo = new Abrigo();
+        abrigo.setNome(dto.nome());
+        abrigo.setTelefone(dto.telefone());
+        abrigo.setEmail(dto.email());
+        abrigoRepository.save(abrigo);
     }
 
     public List<Pet> listarPets(String idOuNome) {
         try {
             Long id = Long.parseLong(idOuNome);
-            return repository.getReferenceById(id).getPets();
+            return abrigoRepository.getReferenceById(id).getPets();
         } catch (EntityNotFoundException enfe) {
             throw new NaoEncontradoException("Abrigo não encontrado");
         } catch (NumberFormatException e) {
             try {
-                return repository.findByNome(idOuNome).getPets();
+                return abrigoRepository.findByNome(idOuNome).getPets();
             } catch (EntityNotFoundException enfe) {
                 throw new NaoEncontradoException("Abrigo não encontrado");
             }
         }
     }
 
-    public void cadastrarPet(String idOuNome, Pet pet) {
+    public void cadastrarPet(String idOuNome, @Valid CadastrarPetDto dto) {
+        Pet pet = new Pet();
+        pet.setTipo(TipoPet.valueOf(dto.tipo()));
+        pet.setNome(dto.nome());
+        pet.setRaca(dto.raca());
+        pet.setIdade(dto.idade());
+        pet.setCor(dto.cor());
+        pet.setPeso(dto.peso());
+        petRepository.save(pet);
+
         try {
             Long id = Long.parseLong(idOuNome);
-            Abrigo abrigo = repository.getReferenceById(id);
+            Abrigo abrigo = abrigoRepository.getReferenceById(id);
             pet.setAbrigo(abrigo);
             pet.setAdotado(false);
             abrigo.getPets().add(pet);
-            repository.save(abrigo);
+            abrigoRepository.save(abrigo);
         } catch (EntityNotFoundException enfe) {
             throw new NaoEncontradoException("Abrigo não encontrado");
         } catch (NumberFormatException nfe) {
             try {
-                Abrigo abrigo = repository.findByNome(idOuNome);
+                Abrigo abrigo = abrigoRepository.findByNome(idOuNome);
                 pet.setAbrigo(abrigo);
                 pet.setAdotado(false);
                 abrigo.getPets().add(pet);
-                repository.save(abrigo);
+                abrigoRepository.save(abrigo);
             } catch (EntityNotFoundException enfe) {
                 throw new NaoEncontradoException("Abrigo não encontrado");
             }
