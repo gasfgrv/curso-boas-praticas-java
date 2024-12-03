@@ -10,12 +10,10 @@ public class EmailService {
 
     private final JavaMailSender emailSender;
 
-
     @Autowired
     public EmailService(JavaMailSender emailSender) {
         this.emailSender = emailSender;
     }
-
 
     public void enviarEmail(String to, String subject, String message) {
         SimpleMailMessage email = new SimpleMailMessage();

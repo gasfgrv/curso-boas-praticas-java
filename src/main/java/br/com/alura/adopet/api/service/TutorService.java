@@ -5,27 +5,28 @@ import br.com.alura.adopet.api.dto.tutor.CadastrarTutorDto;
 import br.com.alura.adopet.api.exception.ValidacaoException;
 import br.com.alura.adopet.api.model.Tutor;
 import br.com.alura.adopet.api.repository.TutorRepository;
+import br.com.alura.adopet.api.validacoes.ValidacaoCadastroTutor;
+import br.com.alura.adopet.api.validacoes.ValidacaoTutorComLimiteDeAdocoes;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class TutorService {
 
     private final TutorRepository repository;
+    private final List<ValidacaoCadastroTutor> validacoes;
 
     @Autowired
-    public TutorService(TutorRepository repository) {
+    public TutorService(TutorRepository repository, List<ValidacaoCadastroTutor> validacoes) {
         this.repository = repository;
+        this.validacoes = validacoes;
     }
 
     public void cadastrar(@Valid CadastrarTutorDto dto) {
-        boolean telefoneJaCadastrado = repository.existsByTelefone(dto.telefone());
-        boolean emailJaCadastrado = repository.existsByEmail(dto.email());
-
-        if (telefoneJaCadastrado || emailJaCadastrado) {
-            throw new ValidacaoException("Dados já cadastrados para outro tutor!");
-        }
+        validacoes.forEach(validador -> validador.validar(dto));
 
         Tutor tutor = new Tutor();
         tutor.setNome(dto.nome());

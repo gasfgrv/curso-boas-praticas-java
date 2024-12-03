@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class PetService {
@@ -20,13 +21,9 @@ public class PetService {
 
     public List<Pet> listarTodosDisponiveis() {
         List<Pet> pets = repository.findAll();
-        List<Pet> disponiveis = new ArrayList<>();
-        for (Pet pet : pets) {
-            if (!pet.getAdotado()) {
-                disponiveis.add(pet);
-            }
-        }
-        return disponiveis;
+        return pets.stream()
+                .filter(pet -> !pet.getAdotado())
+                .collect(Collectors.toList());
     }
 
 }
