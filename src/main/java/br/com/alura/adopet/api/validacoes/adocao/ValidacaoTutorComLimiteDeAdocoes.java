@@ -16,7 +16,7 @@ public class ValidacaoTutorComLimiteDeAdocoes implements ValidacaoSolicitacaoAdo
 
     @Override
     public void validar(SolicitacaoAdocaoDto dto) {
-        int contador = adocaoRepository.countByTutor(dto.idTutor());
+        int contador = adocaoRepository.countByTutorId(dto.idTutor());
         if (contador > 4) {
             throw new ValidacaoException("Tutor chegou ao limite máximo de 5 adoções!");
         }
