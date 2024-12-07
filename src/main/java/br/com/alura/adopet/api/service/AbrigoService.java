@@ -6,7 +6,6 @@ import br.com.alura.adopet.api.exception.NaoEncontradoException;
 import br.com.alura.adopet.api.exception.ValidacaoException;
 import br.com.alura.adopet.api.model.Abrigo;
 import br.com.alura.adopet.api.model.Pet;
-import br.com.alura.adopet.api.model.TipoPet;
 import br.com.alura.adopet.api.repository.AbrigoRepository;
 import br.com.alura.adopet.api.repository.PetRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -41,10 +40,7 @@ public class AbrigoService {
             throw new ValidacaoException("Dados já cadastrados para outro abrigo!");
         }
 
-        Abrigo abrigo = new Abrigo();
-        abrigo.setNome(dto.nome());
-        abrigo.setTelefone(dto.telefone());
-        abrigo.setEmail(dto.email());
+        Abrigo abrigo = new Abrigo(dto.nome(), dto.telefone(), dto.email());
         abrigoRepository.save(abrigo);
     }
 
@@ -64,20 +60,13 @@ public class AbrigoService {
     }
 
     public void cadastrarPet(String idOuNome, @Valid CadastrarPetDto dto) {
-        Pet pet = new Pet();
-        pet.setTipo(TipoPet.valueOf(dto.tipo()));
-        pet.setNome(dto.nome());
-        pet.setRaca(dto.raca());
-        pet.setIdade(dto.idade());
-        pet.setCor(dto.cor());
-        pet.setPeso(dto.peso());
+        Pet pet = new Pet(dto.tipo(), dto.nome(), dto.raca(), dto.idade(), dto.cor(), dto.peso());
         petRepository.save(pet);
 
         try {
             Long id = Long.parseLong(idOuNome);
             Abrigo abrigo = abrigoRepository.getReferenceById(id);
-            pet.setAbrigo(abrigo);
-            pet.setAdotado(false);
+            pet.adicionarAoAbrigo(abrigo);
             abrigo.getPets().add(pet);
             abrigoRepository.save(abrigo);
         } catch (EntityNotFoundException enfe) {
@@ -85,8 +74,7 @@ public class AbrigoService {
         } catch (NumberFormatException nfe) {
             try {
                 Abrigo abrigo = abrigoRepository.findByNome(idOuNome);
-                pet.setAbrigo(abrigo);
-                pet.setAdotado(false);
+                pet.adicionarAoAbrigo(abrigo);
                 abrigo.getPets().add(pet);
                 abrigoRepository.save(abrigo);
             } catch (EntityNotFoundException enfe) {
